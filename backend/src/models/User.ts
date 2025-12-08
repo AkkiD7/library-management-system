@@ -1,13 +1,12 @@
-import mongoose, { Schema, Document } from "mongoose";
-import bcrypt from "bcryptjs";
+// src/models/User.ts
+import mongoose, { Schema } from "mongoose";
 
-export interface IUser extends Document {
+export interface IUser {
   username: string;
   password: string;
   role: "admin" | "user";
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(candidate: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>(
@@ -23,19 +22,5 @@ const userSchema = new Schema<IUser>(
   },
   { timestamps: true }
 );
-
-// password hash middleware
-userSchema.pre("save", async function (next) {
-  const user = this as IUser;
-  if (!user.isModified("password")) return next();
-
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(user.password, salt);
-  next();
-});
-
-userSchema.methods.comparePassword = function (candidate: string) {
-  return bcrypt.compare(candidate, this.password);
-};
 
 export const User = mongoose.model<IUser>("User", userSchema);
