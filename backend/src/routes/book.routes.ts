@@ -48,7 +48,7 @@ router.delete(
 router.patch(
   "/:id/status",
   authMiddleware,
-  allowRoles("admin"),
+  allowRoles("admin","user"),
   validateSchema(bookIdParamSchema, "params"),
   validateSchema(updateBookStatusBodySchema, "body"),
   updateBookStatus
