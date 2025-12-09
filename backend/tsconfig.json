@@ -6,9 +6,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "types": [
-      "node"
+      "node","jest"
     ],
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     "strict": true,
     "sourceMap": true,
