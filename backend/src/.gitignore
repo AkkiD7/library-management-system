@@ -1,0 +1,83 @@
+# ===========================
+# Node & General Stuff
+# ===========================
+node_modules/
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# dotenv environment files
+.env
+.env.*
+!.env.example
+
+# TypeScript build output
+dist/
+build/
+out/
+
+# Logs
+logs
+*.log
+*.log.*
+log.txt
+
+# Cache files
+.cache/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# ===========================
+# Backend Specific
+# ===========================
+tmp/
+uploads/
+coverage/
+
+# MongoDB local database dump
+dump/
+
+# ===========================
+# Frontend (React + Vite / CRA)
+# ===========================
+**/node_modules/
+**/dist/
+**/build/
+**/.cache/
+**/coverage/
+**/.parcel-cache/
+
+# React build artifacts
+*.tsbuildinfo
+*.eslintcache
+
+# ===========================
+# Next.js (if you use it)
+# ===========================
+.next/
+.vercel/
+.next/cache/
+
+# ===========================
+# Testing
+# ===========================
+jest-cache/
+jest-results.json
+
+# ===========================
+# Misc
+# ===========================
+*.tgz
+*.gzip
+*.zip
+*.tar
