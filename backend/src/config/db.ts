@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { seedAdminUser } from "../utils/seedAdmin";
 
 export const connectDB = async () => {
   try {
@@ -8,6 +9,8 @@ export const connectDB = async () => {
     }
     await mongoose.connect(uri);
     console.log("MongoDB connected");
+      await seedAdminUser(); 
+
   } catch (error) {
     console.error("MongoDB connection error:", error);
     process.exit(1);
