@@ -75,7 +75,7 @@ const LoginPage: React.FC = () => {
                   name="username"
                   type="text"
                   required
-                  placeholder="Username (e.g., admin)"
+                  placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-10"
@@ -94,7 +94,7 @@ const LoginPage: React.FC = () => {
                   name="password"
                   type="password"
                   required
-                  placeholder="Password (e.g., Admin@123)"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
