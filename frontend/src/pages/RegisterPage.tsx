@@ -16,30 +16,56 @@ const RegisterPage: React.FC = () => {
   const [success, setSuccess] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
+  const validateForm = () => {
+    if (!username.trim()) {
+      setError("Username is required");
+      return false;
+    }
+    if (username.trim().length < 3) {
+      setError("Username must be at least 3 characters");
+      return false;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+    if (password !== confirm) {
+      setError("Passwords do not match");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (password !== confirm) {
-      setError("Passwords do not match");
-      return;
-    }
+
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
-      const res = await registerApi({ username, password });
-      setSuccess("Registration successful! You can now log in.");
+      await registerApi({ username, password });
+      setSuccess("Registration successful! Redirecting to login...");
       setTimeout(() => {
         navigate("/login");
-      }, 800);
+      }, 1000);
     } catch (err: any) {
       const msg =
-        err?.response?.data?.message || "Failed to register. Please try again.";
+        err?.response?.data?.message ||
+        "Failed to register. Please try again.";
       setError(msg);
     } finally {
       setLoading(false);
     }
   };
+
+  const isSubmitDisabled =
+    loading ||
+    !username.trim() ||
+    !password ||
+    !confirm ||
+    password !== confirm;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -132,8 +158,9 @@ const RegisterPage: React.FC = () => {
                 type="submit"
                 className="w-full flex justify-center"
                 isLoading={loading}
+                disabled={isSubmitDisabled}
               >
-                Register
+                {loading ? "Registering..." : "Register"}
               </Button>
             </div>
           </form>

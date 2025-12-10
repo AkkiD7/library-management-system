@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import type { Book, BookFormInput } from "../types";
 import { Button } from "./Button";
-import { BookFormModal } from "./BookFormModal"; 
+import { BookFormModal } from "./BookFormModal";
 import {
   Edit2,
   Trash2,
@@ -30,15 +30,23 @@ export const BookList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | undefined>(undefined);
 
+  const [actionError, setActionError] = useState<string>("");
+  const [actionSuccess, setActionSuccess] = useState<string>("");
+
+  const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const isAdmin = user?.role === "admin";
 
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const res = await getBooksApi(); 
+      setActionError("");
+      const res = await getBooksApi();
       setBooks(res.data);
     } catch (error) {
       console.error("Failed to fetch books", error);
+      setActionError("Failed to load books. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -50,48 +58,72 @@ export const BookList: React.FC = () => {
 
   const handleCreate = async (bookData: BookFormInput) => {
     try {
+      setActionError("");
+      setActionSuccess("");
       await createBookApi({
         title: bookData.title,
         author: bookData.author,
         publishedYear: bookData.publishedYear,
       });
+      setActionSuccess("Book created successfully.");
       await fetchBooks();
     } catch (error) {
       console.error("Failed to create book", error);
+      setActionError("Failed to create book. Please try again.");
     }
   };
 
   const handleUpdate = async (bookData: BookFormInput) => {
     if (!editingBook) return;
     try {
+      setActionError("");
+      setActionSuccess("");
       await updateBookApi(editingBook._id, {
         title: bookData.title,
         author: bookData.author,
         publishedYear: bookData.publishedYear,
       });
+      setActionSuccess("Book updated successfully.");
       await fetchBooks();
     } catch (error) {
       console.error("Failed to update book", error);
+      setActionError("Failed to update book. Please try again.");
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this book?")) return;
     try {
+      setActionError("");
+      setActionSuccess("");
+      setDeletingId(id);
       await deleteBookApi(id);
+      setActionSuccess("Book deleted successfully.");
       await fetchBooks();
     } catch (error) {
       console.error("Failed to delete book", error);
+      setActionError("Failed to delete book. Please try again.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const toggleStatus = async (book: Book) => {
     try {
+      setActionError("");
+      setActionSuccess("");
+      setStatusUpdatingId(book._id);
       const newStatus = book.status === "available" ? "borrowed" : "available";
       await updateBookStatusApi(book._id, newStatus);
+      setActionSuccess(
+        `Book marked as ${newStatus === "available" ? "available" : "borrowed"}.`
+      );
       await fetchBooks();
     } catch (error) {
       console.error("Failed to update status", error);
+      setActionError("Failed to update status. Please try again.");
+    } finally {
+      setStatusUpdatingId(null);
     }
   };
 
@@ -117,16 +149,31 @@ export const BookList: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {actionError && (
+        <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      )}
+      {actionSuccess && (
+        <div className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+          {actionSuccess}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-slate-900">Library Books</h1>
-        {isAdmin && <Button onClick={openCreateModal}>+ Add New Book</Button>}
+        {isAdmin && (
+          <Button onClick={openCreateModal}>
+            + Add New Book
+          </Button>
+        )}
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4">
@@ -182,86 +229,99 @@ export const BookList: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {filteredBooks.length > 0 ? (
-                filteredBooks.map((book) => (
-                  <tr
-                    key={book._id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-900">
-                        {book.title}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-500">
-                        {book.author}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-500">
-                        {book.publishedYear}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                        ${
-                          book.status === "available"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-amber-100 text-amber-800"
-                        }`}
-                      >
-                        {book.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleStatus(book)}
-                          title={
+                filteredBooks.map((book) => {
+                  const isStatusLoading = statusUpdatingId === book._id;
+                  const isDeleteLoading = deletingId === book._id;
+
+                  return (
+                    <tr
+                      key={book._id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-slate-900">
+                          {book.title}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-500">
+                          {book.author}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-500">
+                          {book.publishedYear}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                          ${
                             book.status === "available"
-                              ? "Borrow Book"
-                              : "Return Book"
-                          }
-                          className={`${
-                            book.status === "available"
-                              ? "text-blue-600 hover:text-blue-900"
-                              : "text-amber-600 hover:text-amber-900"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-amber-100 text-amber-800"
                           }`}
                         >
-                          {book.status === "available" ? (
-                            <BookOpenCheck className="h-4 w-4" />
-                          ) : (
-                            <BookX className="h-4 w-4" />
-                          )}
-                          <span className="ml-1">
-                            {book.status === "available" ? "Borrow" : "Return"}
-                          </span>
-                        </Button>
+                          {book.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end items-center gap-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleStatus(book)}
+                            title={
+                              book.status === "available"
+                                ? "Borrow Book"
+                                : "Return Book"
+                            }
+                            className={`${
+                              book.status === "available"
+                                ? "text-blue-600 hover:text-blue-900"
+                                : "text-amber-600 hover:text-amber-900"
+                            }`}
+                            isLoading={isStatusLoading}
+                            disabled={isStatusLoading}
+                          >
+                            {book.status === "available" ? (
+                              <BookOpenCheck className="h-4 w-4" />
+                            ) : (
+                              <BookX className="h-4 w-4" />
+                            )}
+                            <span className="ml-1">
+                              {book.status === "available" ? "Borrow" : "Return"}
+                            </span>
+                          </Button>
 
-                        {isAdmin && (
-                          <>
-                            <div className="h-4 w-px bg-slate-300 mx-1"></div>
-                            <button
-                              onClick={() => openEditModal(book)}
-                              className="text-slate-400 hover:text-blue-600 transition-colors"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(book._id)}
-                              className="text-slate-400 hover:text-red-600 transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          {isAdmin && (
+                            <>
+                              <div className="h-4 w-px bg-slate-300 mx-1"></div>
+                              <button
+                                onClick={() => openEditModal(book)}
+                                className="text-slate-400 hover:text-blue-600 transition-colors"
+                                disabled={isDeleteLoading || isStatusLoading}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(book._id)}
+                                className="text-slate-400 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={isDeleteLoading}
+                              >
+                                {isDeleteLoading ? (
+                                  <span className="text-xs">Deleting...</span>
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td

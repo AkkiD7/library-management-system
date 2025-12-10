@@ -20,6 +20,12 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!username.trim() || !password.trim()) {
+      setError("Username and password are required.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -38,6 +44,9 @@ const LoginPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const isSubmitDisabled =
+    loading || username.trim().length === 0 || password.trim().length === 0;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -95,14 +104,8 @@ const LoginPage: React.FC = () => {
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">
-                      {error}
-                    </h3>
-                  </div>
-                </div>
+              <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+                {error}
               </div>
             )}
 
@@ -111,8 +114,9 @@ const LoginPage: React.FC = () => {
                 type="submit"
                 className="w-full flex justify-center"
                 isLoading={loading}
+                disabled={isSubmitDisabled}
               >
-                Sign in
+                {loading ? "Signing in..." : "Sign in"}
               </Button>
             </div>
           </form>
@@ -129,7 +133,7 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            <div className=" grid gap-3 text-xs text-slate-500 text-center">
+            <div className="grid gap-3 text-xs text-slate-500 text-center mt-4">
               <div className="bg-slate-50 p-2 rounded">
                 <p className="font-bold">Admin</p>
                 <p>user: admin</p>
@@ -137,6 +141,7 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
           </div>
+
           <p className="mt-6 text-center text-xs text-slate-500">
             Don&apos;t have an account?{" "}
             <Link
@@ -146,7 +151,6 @@ const LoginPage: React.FC = () => {
               Register
             </Link>
           </p>
-
         </div>
       </div>
     </div>
