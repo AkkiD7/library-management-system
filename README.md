@@ -156,11 +156,6 @@ cd backend
 npm test
 ```
 
-### Frontend Tests
-```bash
-cd frontend
-npm test
-```
 
 ---
 
